@@ -1,0 +1,52 @@
+load "medit";
+
+border a1(t=0,2.2){x=t;		y=0;	label=1;}
+border a2(t=0,0.41) {x=2.2;		y=t;	label=2;}
+border a3(t=0,2.2){x=2.2-t;	y=0.41;	label=3;}
+border a4(t=0,0.41) {x=0;		y=0.41-t;	label=4;}
+border c(t=0,2*pi){x=0.2+0.05*cos(t);y=0.2+0.05*sin(t);label=0;}
+int n = 40;
+mesh Th = buildmesh(a1(n)+a2(n)+a3(n)+a4(n)+c(-n));
+plot(Th);
+
+fespace Xh(Th,P2);
+fespace Mh(Th,P1);
+
+Xh u2,uold2=0,v2,u1,uold1=0,v1,psi,phi;
+Mh p,q;
+
+int i=1;
+real nu = 1e-3, epsilon = 10e-6;
+real T = 7, dt=0.01;
+real alpha = 1/dt;
+real Um=0.3;
+
+for(real t=0; t<=T; t+=dt){
+	solve Stokes(u1,u2,p,v1,v2,q,solver=Crout) =
+		int2d(Th)( alpha*(u1*v1 + u2*v2) )
+		+ int2d(Th)(nu*( dx(u1)*dx(v1) + dy(u1)*dy(v1)
+			+ dx(u2)*dx(v2) + dy(u2)*dy(v2) )
+			)
+		+ int2d(Th)(- p*q*epsilon
+			- p*dx(v1) - p*dy(v2)
+			- dx(u1)*q - dy(u2)*q
+			)
+		+ int2d(Th)( -alpha*(uold1*v1 + uold2*v2) )
+		+ on(4,u1=4*Um*y*(0.41-y)/0.41^2,u2=0)
+		+ on(1,3,u1=0,u2=0);
+	
+	uold1 = u1;
+	uold2 = u2;
+
+	plot(cmm=" [u1,u2] and p ",p,[u1,u2]);
+	savesol("Th."+string(i)+".sol",Th, [u1,u2]);
+	savemesh(Th, "Th."+string(i)+".mesh");
+	i++;		
+}
+
+solve streamlines(psi,phi) =
+	int2d(Th)( dx(psi)*dx(phi) + dy(psi)*dy(phi))
+	+ int2d(Th)( -phi*(dy(u1)-dx(u2)))
+	+ on(1,2,3,4,psi=0);
+
+plot(cmm=" psi ", psi);

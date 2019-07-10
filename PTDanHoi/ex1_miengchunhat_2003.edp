@@ -1,0 +1,25 @@
+mesh Th=square(10,10,[2*x-1,20*y]);
+fespace Vh(Th,P2);
+Vh u1,u2,v1,v2;
+real sqrt2=sqrt(2.);
+plot(Th);
+
+macro epsilon(u1,u2) [dx(u1),dy(u2),(dy(u1)+dx(u2))/sqrt2] //
+macro div(u,v) ( dx(u)+dy(v) ) // EOM
+
+real E = 7e4, nu = 0.3, mu= E/(2*(1+nu));
+real lambda = E*nu/((1+nu)*(1-2*nu)), g = -9.81;
+real f = 1e3;
+
+solve Elasticity([u1,u2],[v1,v2]) = 
+	int2d(Th) (lambda*div(u1,u2)*div(v1,v2))
+	+ int2d(Th) (2.*mu*(epsilon(u1,u2)'*epsilon(v1,v2) ) )	
+	- int2d(Th) (g*v2)
+	- int1d(Th, 2) (f*v1)	
+	+ on (4,u1=0,u2=0);
+
+plot([u1,u2]);
+real coef=20;
+
+mesh Th1 = movemesh(Th, [x+u1*coef, y+u2*coef]);
+plot(Th1);

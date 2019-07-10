@@ -1,0 +1,32 @@
+int n = 50;
+mesh Th=square(n,n);
+plot(cmm=" Th ",Th);
+
+fespace Xh(Th,P2); // definition of the velocity component space
+fespace Mh(Th,P1); // definition of the pressure space
+Xh u2,v2;
+Xh u1,v1;
+Xh psi,phi;
+Mh p,q;
+
+real epsilon = 10e-6;
+
+solve Stokes(u1,u2,p,v1,v2,q,solver=Crout) =
+	int2d(Th)( ( dx(u1)*dx(v1) + dy(u1)*dy(v1)
+		+ dx(u2)*dx(v2) + dy(u2)*dy(v2) )
+		)
+	+ int2d(Th)(- p*q*epsilon
+		- p*dx(v1) - p*dy(v2)
+		- dx(u1)*q - dy(u2)*q
+		)
+	+ on(3,u1=1,u2=0)
+	+ on(1,2,4,u1=0,u2=0);
+
+plot(cmm=" [u1,u2] and p ",p,[u1,u2]);
+
+solve streamlines(psi,phi) =
+	int2d(Th)( dx(psi)*dx(phi) + dy(psi)*dy(phi))
+	+ int2d(Th)( -phi*(dy(u1)-dx(u2)))
+	+ on(1,2,3,4,psi=0);
+
+plot(cmm=" psi ", psi);

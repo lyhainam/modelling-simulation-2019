@@ -1,0 +1,45 @@
+//mesh Th = square(20,20); //Mien hinh vuong don vi 20x20.
+
+
+//mesh Th = square(10,100,[2*x-1,20*y]); //Mien hinh chu nhat [a,b]x[c,d].
+
+
+/*
+//Mien hinh tron don vi
+real r=1.;
+border C(t=0,2*pi){x=r*cos(t);y=r*sin(t);}
+mesh Th = buildmesh(C(50));
+*/
+
+
+/*
+//Mien hinh vuong khoet tron
+real r=0.5;
+border a1(t=0,1){x=t;y=0;}
+border a2(t=0,1){x=1;y=t;}
+border a3(t=0,1){x=1-t;y=1;}
+border a4(t=0,1){x=0;y=1-t;}
+border c(t=0,2*pi){x=r+r/2*cos(t);y=r+r/2*sin(t);}
+int n=20;
+mesh Th = buildmesh(a1(n)+a2(n)+a3(n)+a4(n)+c(-2*n));
+*/
+
+
+
+//Mien hinh elip
+real r=1.;
+border C(t=0,2*pi){x=3*r*cos(t);y=2*r*sin(t);}
+mesh Th = buildmesh(C(50));
+
+
+
+/*
+//Mien elip khoet tron
+real r=1.;
+border C1(t=0,2*pi){x=3*r*cos(t);y=2*sin(t);}
+border C2(t=0,2*pi){x=r*cos(t);y=sin(t);}
+mesh Th = buildmesh(C1(50)+C2(-25));
+*/
+
+
+plot(Th);

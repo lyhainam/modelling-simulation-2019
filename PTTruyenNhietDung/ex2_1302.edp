@@ -1,0 +1,14 @@
+border c1(t=0,pi) {x=t; y=-t;  label=1;}
+border c2(t=-pi,0){x=pi;y=t;   label=1;}
+border c3(t=pi,0) {x=t; y=pi-t;label=1;}
+border c4(t=pi,0) {x=0; y=t;   label=1;}
+mesh Th = buildmesh(c1(60)+c2(50)+c3(60)+c4(50));
+plot(Th);
+fespace Vh(Th,P1);
+Vh u,v;
+func f=2*sin(x+y);
+solve Poisson(u,v) =
+	int2d(Th)(dx(u)*dx(v)+dy(u)*dy(v))
+	- int2d(Th)(f*v)
+	+ on(1,u=0);
+plot(u);

@@ -1,0 +1,39 @@
+for(int n=5;n<=20;n=n+5)
+{
+	cout<<"Muc luoi n = "<<n<<endl;
+	mesh Th = square(n,n);
+	plot(Th);
+
+	real T=1, dt=0.01;
+	func u0=sin(pi*x)*sin(pi*y);
+	func u1=(1+dt)*sin(pi*x)*sin(pi*y);
+
+	fespace Vh(Th,P1);
+	Vh u=u1,v,uold1=u0,uold2;
+
+	macro grad(u) [dx(u), dy(u)] //
+
+	int i=0;
+	for(real t=0;t<=T+dt;t+=dt)
+	{
+		i++;
+		func uexact=exp(t)*sin(pi*x)*sin(pi*y);
+		func f=2*(1+pi^2)*exp(t)*sin(pi*x)*sin(pi*y);
+		uold2=uold1;
+		uold1=u;
+		solve Laplace(u,v,solver=LU) =
+			int2d(Th)((1+1.5/dt)*u*v)
+			+ int2d(Th)(grad(u)'*grad(v))
+			- int2d(Th)(f*v)
+			- int2d(Th)(2*uold1*v/dt)
+			+ int2d(Th)(0.5*uold2*v/dt)
+			+ on(1,2,3,4,u=0);
+		//	plot(u);
+		real l2error = sqrt(int2d(Th)((uexact-u)^2));
+		if(i%50 == 1)
+		{	
+			cout<<"Sai so tai t = "<<t<<" = "<<l2error<<endl;
+		}	
+		//i++;
+	}
+}

@@ -1,0 +1,54 @@
+load"ff-Ipopt";
+
+int n = 100;
+mesh Th = square(n, n);
+real alpha = 1e-3;
+
+fespace Vh(Th, P1);
+Vh ya = sin(pi*x)*sin(pi*y);
+Vh yd = ya + 4*pi^4*ya*alpha;
+
+Vh fe = 2*pi^2*sin(pi*x)*sin(pi*y);
+
+func real[int] SolveState(real[int] u) { //u = f
+    Vh y, v; //Vh = uh, fh, vh;
+    Vh f;
+    f[] = u;
+    solve Poisson(y, v, solver = LU) = 
+        int2d(Th) (dx(y) * dx(v) + dy(y)*dy(v))
+        - int2d(Th) (f*v)
+        + on(1, 2, 3, 4, y = 0);
+
+    return y[];
+}
+
+func real J(real[int] u) {
+    Vh uu;
+    uu[] = u;
+    Vh yy;
+    yy[] = SolveState(u);
+
+    real res;
+    res = 1./2 * int2d(Th) ( (yy - yd)^2 ) 
+        + alpha/2 * int2d(Th) ( uu^2 );
+
+    return res;
+}
+
+func real[int] dJ(real[int] u) {
+	Vh ph, uh, vh;
+	uh[] = SolveState(u);
+	solve Adjoint(ph, vh) = 
+		int2d(Th)(dx(ph)*dx(vh) + dy(ph)*dy(vh))
+		- int2d(Th)((uh - yd)*vh)
+		+ on(1,2,3,4 ,ph = 0);
+	Vh fh, output;
+	fh[] = u;
+	output = ph + alpha*fh;
+	return output[];
+}
+
+Vh f = 0;
+IPOPT(J, dJ, f[]);
+plot(f, wait=1, dim=3);
+cout <<"Sai so la: "<<sqrt(int2d(Th)((f-fe)^2))<<endl;

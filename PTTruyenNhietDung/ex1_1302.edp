@@ -1,0 +1,11 @@
+mesh Th = square(10,10);
+plot(Th);
+int n=10;
+fespace Vh(Th,P2);
+Vh u,v;
+func f=-2*(x^2+y^2-x-y);
+solve Poisson(u,v,solver=LU) =
+	int2d(Th)(dx(u)*dx(v)+dy(u)*dy(v))
+	- int2d(Th)(f*v)
+	+ on(1,2,3,4,u=0);
+plot(u);

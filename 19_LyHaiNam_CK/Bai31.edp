@@ -1,0 +1,30 @@
+load "medit";
+real h = 0.41, w=2.2;
+border a1(t=0,w){x=t;	y=0;	label=1;}
+border a2(t=0,h){x=w;	y=t;	label=2;}
+border a3(t=0,w){x=w-t;	y=h;	label=3;}
+border a4(t=0,h){x=0;	y=h-t;	label=4;}
+int n = 40;
+mesh Th = buildmesh(a1(2*n)+a2(n)+a3(2*n)+a4(n));
+plot(Th);
+
+func u1 = 1;
+func u2 = 0;
+func phi0 = sqrt((x-0.2)^2+(y-0.2)^2)<0.05?10.0:0.0;
+
+fespace Vh(Th, P1);
+Vh phi = phi0, v, phiold;
+
+int i =0;
+real T = 2.5;
+real dt = 0.01;
+
+for (i = 0; i < T/dt;i++)
+{
+	phiold=phi;
+	phi = convect([u1,u2],-dt,phiold);
+	plot(phi,cmm=" t="+(i*dt) + ", min=" + phi[].min + ", max=" + phi[].max);		
+	savesol("Th."+string(i)+ ".sol",Th,phi);
+	savemesh(Th,"Th."+string(i)+".mesh");
+	plot(phi);
+}

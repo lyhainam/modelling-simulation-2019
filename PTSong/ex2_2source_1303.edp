@@ -1,0 +1,34 @@
+load "medit"
+mesh Th = square(20,20);
+plot(Th);
+
+real T = 1;
+real dt = 0.005;
+
+func u0 = exp(0.5*((x-0.5)/0.1)^2-0.5*((y-0.5)/0.1)^2);
+func u1 = sin(pi*x)*sin(pi*y)*pi*sqrt(2)*dt + u0;
+
+fespace Vh(Th, P2);
+Vh u = u1, v, uold1=u0, uold2;
+
+macro Grad(u)[dx(u), dy(u)] //
+
+int i=1;
+for (real t=0;t<T; t+=dt)
+{	
+	uold2 = uold1;
+	uold1 = u;
+
+	solve WaveEquation(u, v, solver = LU)
+		= int2d(Th)(u*v) - int2d(Th)(2*uold1*v) + int2d(Th)(uold2*v)
+		+ int2d(Th)(Grad(u)'*Grad(v)*(dt)^2/2)
+		+ int2d(Th)(Grad(uold2)'*Grad(v)*(dt)^2/2)	
+		//+ int2d(Th)((dx(u)*dx(v) + dy(u)*dy(v))*(dt)^2/2)
+		//+ int2d(Th)((dx(uold2)*dx(v) + dy(uold2)*dy(v))*(dt)^2/2)
+		+ on(1, u=0);	
+	
+	savesol("Th."+string(i)+ ".sol",Th,u);
+	savemesh(Th,"Th."+string(i)+".mesh");
+	i++;
+}
+plot(u);

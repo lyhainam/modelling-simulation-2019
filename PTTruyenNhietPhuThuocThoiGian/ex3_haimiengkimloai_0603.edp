@@ -1,0 +1,50 @@
+load "medit";
+
+int C1=99;
+int C2=98;
+
+border C0(t=0., 2.*pi){x=5.*cos(t); y=5.*sin(t);}
+
+border C11(t=0., 1.){x=1.+t; y=3.; label=C1;}
+border C12(t=0., 1.){x=2.; y=3.-6.*t; label=C1;}
+border C13(t=0., 1.){x=2.-t; y=-3.; label=C1;}
+border C14(t=0., 1.){x=1.; y=-3.+6.*t; label=C1;}
+
+border C21(t=0., 1.){x=-2.+t; y=3.; label=C2;}
+border C22(t=0., 1.){x=-1.; y=3.-6.*t; label=C2;}
+border C23(t=0., 1.){x=-1.-t; y=-3.; label=C2;}
+border C24(t=0., 1.){x=-2.; y=-3.+6.*t; label=C2;}
+
+mesh Th = buildmesh(C0(50)
+	+ C11(5)+C12(20)+C13(5)+C14(20)
+	+ C21(-5)+C22(-20)+C23(-5)+C24(-20));
+plot(Th,wait=1);
+
+real T=1, dt=0.01;
+func u0=sin(pi*x)*sin(pi*y);
+func u1=(1+dt)*sin(pi*x)*sin(pi*y);
+
+macro grad(u) [dx(u),dy(u)] //
+
+fespace Vh(Th,P2);
+Vh u=u1,v,uold1=u0,uold2;
+int i=1;
+for(real t=0;t<=T;t+=dt)
+{
+	func f=(1+2*pi^2)*exp(t)*sin(pi*x)*sin(pi*y);
+	uold2=uold1;
+	uold1=u;
+	solve Laplace(u,v) = 
+		int2d(Th)(1.5*u*v/dt)
+		+ int2d(Th)(grad(u)'*grad(v))
+		- int2d(Th)(f*v)
+		- int2d(Th)(2*uold1*v/dt)
+		+ int2d(Th)(0.5*uold2*v/dt)
+		+ on(C0,u=20)
+		+ on(C1,u=60);
+	//	+ on(C2,u=100);
+	plot(u);
+	savesol("Th." +string(i)+ ".sol", Th, u);
+	savemesh(Th, "Th." +string(i)+ ".mesh");
+	i++;
+}

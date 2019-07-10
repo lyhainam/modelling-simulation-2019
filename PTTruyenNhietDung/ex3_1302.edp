@@ -1,0 +1,17 @@
+border a(t=0,2*pi){x=cos(t);y=sin(t);} 
+mesh Th= buildmesh(a(10));
+plot(Th);
+fespace Vh(Th,P2);
+Vh u,v;
+func f= -1;
+func g= 0;
+func h=dx(u)*N.x+dy(u)*N.y;
+solve Poisson(u,v) =
+	int2d(Th)(dx(u)*dx(v)+dy(u)*dy(v))
+	//+ int2d(Th,a)(u*v)
+	- int2d(Th)(f*v)
+	+ int2d(Th,a)(g*v)
+	+ on(a,u=g-h);
+//or
+//	- int1d(Th,a)(u*v);
+plot(u);

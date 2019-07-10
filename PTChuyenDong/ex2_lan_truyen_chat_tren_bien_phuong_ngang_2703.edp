@@ -1,0 +1,55 @@
+load "medit";
+
+real l1=0.1, l2=0.45, h=1.2;
+int bottom=1, right=2, top=3, left=4, inner=5;
+border a1(t=0,10){x=t;y=0;label=bottom;}
+border a3(t=10,0){x=t;y=h;label=top;}
+
+border a21(t=0,l2){x=10;y=t;label=right;}
+border a22(t=0,l1){x=10;y=l2+t;label=right;}
+border a23(t=0,l1){x=10;y=l2+l1+t;label=right;}
+border a24(t=l1,0){x=10;y=h-l2-t;label=right;}
+border a25(t=l2,0){x=10;y=h-t;label=right;}
+
+border a41(t=0,l2){x=0;y=h-t;label=left;}
+border a42(t=0,l1){x=0;y=h-l2-t;label=left;}
+border a43(t=0,l1){x=0;y=h-l2-l1-t;label=left;}
+border a44(t=l1,0){x=0;y=l2+t;label=left;}
+border a45(t=l2,0){x=0;y=t;label=left;}
+
+border a51(t=0,10){x=t;y=l2;label=inner;}
+border a52(t=10,0){x=t;y=l2+l1;label=inner;}
+border a61(t=0,10){x=t;y=h-l2-l1;label=inner;}
+border a62(t=10,0){x=t;y=h-l2;label=inner;}
+
+int n = 10;
+mesh Th = buildmesh(a1(5*n)+a21(2*n)+a22(n)+a23(2*n)+a24(n)+a25(2*n)+
+	a3(5*n)+a41(2*n)+a42(n)+a43(2*n)+a44(n)+a45(2*n)+
+	a51(20*n)+a52(20*n)+a61(20*n)+a62(20*n));
+plot(Th);
+
+//func u1 = 1;
+func u1 = y*(h-y);
+func u2 = 0;
+func phi0 = 0;
+
+fespace Vh(Th, P1);
+Vh phi = phi0, v, phiold;
+
+int i =1;
+real T = 1.5;
+real dt = 0.01;
+
+for (real t = 0; t < T; t += dt)
+{
+	phiold = phi;
+	solve PTChuyenDong(phi, v, solver = LU) =
+		int2d(Th)(phi*v/dt + u1*dx(phi)*v + u2*dy(phi)*v)
+		- int2d(Th)(phiold*v/dt)
+		+ on(1, phi = 1);
+
+	savesol("Th."+string(i)+ ".sol",Th,phi);
+	savemesh(Th,"Th."+string(i)+".mesh");
+	plot(phi);
+	i++;
+}

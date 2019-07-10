@@ -1,0 +1,25 @@
+border b(t=-3,3) {x = t; y = -3; label = 2;};
+border c(t=-3,3) {x = 3; y = t; label = 2;};
+border d(t=3,-3) {x = t; y = 3; label = 2;};
+border e(t=3,-3) {x = -3; y = t; label = 2;};
+int n = 25;
+mesh Th = buildmesh(b(n)+c(n)+d(n)+e(n));
+plot(Th);
+
+real T = 1;
+real dt = 0.05;
+func u1 = -y;
+func u2 = x;
+
+func phi0 = sqrt(x^2 + (y-2)^2) - 1;
+fespace Vh(Th, P1);
+Vh phi = phi0, v, phiold;
+
+for (real t=0;t<T;t+=dt)
+{
+	phiold = phi;
+	solve Transport(phi,v) = 
+		int2d(Th)(phi*v/dt - u1*dx(phi)*v - u2*dy(phi)*v)
+		- int2d(Th)(phiold*v/dt);
+	plot(phi);
+}

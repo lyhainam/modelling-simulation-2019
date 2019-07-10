@@ -1,0 +1,23 @@
+for(int n=25; n<=100; n=n+25)
+{
+	mesh Th = square(n,n);
+	plot(Th);
+
+	fespace Xh(Th,P2);
+	Xh u,v;
+
+	func f=(2*pi^2)*sin(pi*x)*sin(pi*y);
+	func uexact=sin(pi*x)*sin(pi*y);
+
+	macro grad(u) [dx(u),dy(u)] //
+
+	solve Poisson(u,v,solver=LU) =
+		int2d(Th)(grad(u)'*grad(v))
+		- int2d(Th)(f*v)
+		+ on(1,2,3,4,u=0);
+	plot(u);
+	real l2error = sqrt(int2d(Th)((uexact-u)^2));
+	cout<<"Muc luoi n = "<<n<<endl;
+	cout<<"Sai so l2error = "<<l2error<<endl;
+}
+
